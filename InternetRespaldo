@@ -1,0 +1,84 @@
+@echo off
+
+
+echo =================================================================================
+echo Script para alternar conexiones, en caso que una se caiga, usa la otra.
+echo Para que funciones debes ir a "Conexiones de Red", y cambiar el nombre
+echo a las conexiones que vas a alternar, Coloca a tu conexion principal
+echo Como "LAN" y tu Conexion alterna como "BAM", (Recuerda no colocar las comillas)
+echo Script creado por Rafael Yepez
+echo =================================================================================
+:inicio
+if exist testigo.txt del testigo.txt
+set ERRORLEVEL =
+ping -n 1 www.google.com > testigo.txt
+rem La solicitud de ping no pudo encontrar el host
+echo Comprobando conectividad ...
+@find /C "La solicitud de ping no pudo encontrar el host" testigo.txt > null
+rem find /C "recibidos = 0" testigo.txt
+ 
+rem si errorlevel = 0  ha encontrado recibidos=0 lo cual indica que no hay conectivida
+if %ERRORLEVEL%==0  goto reiniciar else goto continua
+ 
+:continua
+color 17
+echo Si hay conectividad. Cuando no haya se deshabilita la conexion "LAN"
+echo y se habilitara la conexion "BAM"
+rem delay de 1min
+@ping -n 60 127.0.0.1 > null
+goto inicio
+     
+:reiniciar
+
+echo se detectó que se fue el Internet, procedamos a usar el Internet del BAM como respaldo por 1 hora
+sleep 2
+netsh interface set interface "LAN" disabled
+echo Desactivado el adaptador de red LAN
+sleep 2
+echo activando el BAM para restablecer el Internet
+sleep 2
+netsh interface set interface "BAM" enabled
+echo Internet restablecido usando el BAM, ahora esperemos 1 hora para
+echo Iniciar nuevamente el Internet con el adaptador LAN
+echo Sino hay Internet en 1 hora, volvemos al BAM
+goto esperar
+
+:esperar
+ 
+Setlocal enabledelayedexpansion
+set /A TIMER=3
+If not defined TIMER (Goto :Menu)
+Echo "%TIMER%"| FINDSTR /I "[A-Z]" >NUL && Goto :Menu || (set /A total_sec=%TIMER%*60)
+If %total_sec% LSS 3600 (Set /A Horas=0, Minutos=%TIMER%, Segundos=0& Goto :Conteo) ELSE (Set /A Timer+=60)
+Set /A Horas=%Timer%-60 & Set /A Horas=!Horas!/60
+Set /A MINUTOS=%Timer%-60 & For /L %%X in (1,1,!HORAS!) Do (Set /A MINUTOS-=60)
+Set /A Segundos=0
+ 
+:Conteo
+CLS
+For /L %%H in (%HORAS%,-1,0) Do (
+	For /L %%M in (!MINUTOS!,-1,0) Do (
+		For /L %%S in (!SEGUNDOS!,-1,0) Do (
+			Echo Tu Miner se reiniciara en:
+			Echo %%H| FINDSTR "^[0-9][0-9]$" >NUL && SET "HO=%%H" || (Set HO=0%%H)
+			Echo %%M| FINDSTR "^[0-9][0-9]$" >NUL && SET "MI=%%M" || (Set MI=0%%M)
+			Echo %%S| FINDSTR "^[0-9][0-9]$" >NUL && SET "SE=%%S" || (Set SE=0%%S)
+			Echo !HO!:!MI!:!SE!
+			Ping -n 2 localhost >NUL
+			CLS
+		)
+		If !SE!==00 (Set /A SEGUNDOS=59)
+	)
+	If !MI!==00 (Set /A MINUTOS=59)
+)
+echo 1 hora transcurrida, desactivando el BAM
+netsh interface set interface "BAM" disabled
+sleep 2
+echo BAM desactivado
+echo habilitando LAN
+sleep 2
+netsh interface set interface "LAN" enabled
+echo LAN habilitado
+sleep 30
+echo Revisando si hay conexión, de no haber, procedemos a usar nuevamente el BAM
+goto inicio
