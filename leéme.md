@@ -11,3 +11,8 @@ Usarlo es muy simple, solo debes dirigirte a conexiones de red y editar el nombr
 Para ir a conexiones de red puedes escribir en el buscador de Windows "Conexiones de red", o puedes simplemente presionar Inicio + R, luego que se abra el recuadro ejecutar pegar ahí lo siguiente: ncpa.cpl y dar click en aceptar.
 
 Una vez se encuentren entre sus conexiones renombren su conexión principal como "LAN", y su conexión de respaldo como "BAM", y listo, solo tendrán que ejecutar el programa, dejarlo abierto y el hará el resto.
+
+
+Quien quiera donar algo, puedo hacerlo a mi dirección de bitcoins:
+
+1MbU7QfJn9iZMoJCSuZtKCyQdn13sqSLAM
